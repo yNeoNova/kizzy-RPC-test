@@ -1,49 +1,55 @@
-name: Build Android APK
+name: Android Build
 
 on:
   push:
-    branches: [main]
-  workflow_dispatch:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
-  build-android:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repo
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Setup Haxe 4.3.6
-      uses: krdlab/setup-haxe@v1
-      with:
-        haxe-version: 4.3.6
+      - name: Install Haxe 4.3.6
+        uses: krdlab/setup-haxe@v1
+        with:
+          haxe-version: 4.3.6
 
-    - name: Install Haxelibs with hmm
-      run: |
-        haxelib --global install hmm
-        haxelib --global run hmm setup
-        hmm install
-        
-    - name: Install Lime and run Android setup
-      run: |
-        haxelib install lime
-        haxelib run lime setup android --quiet
+      - name: Install HMM and Dependencies
+        run: |
+          haxelib --global install hmm
+          haxelib --global run hmm setup
+          hmm install
 
-    - name: Export Android paths to env
-      run: |
-        echo "ANDROID_SDK=$HOME/lib/android-sdk" >> $GITHUB_ENV
-        echo "ANDROID_NDK_ROOT=$HOME/lib/android-ndk" >> $GITHUB_ENV
+      - name: List Installed Deps
+        run: |
+          ls .haxelib/
 
-    - name: Build APK (Release)
-      run: |
-        haxelib run lime build android -release
+      - name: Setup Lime and Android
+        run: |
+          haxelib run lime setup -y
+          haxelib run lime setup android -y
 
-    - name: List APK
-      run: |
-        ls *.apk
+      - name: Build 32-bit APK
+        run: |
+          haxelib run lime build android -release -Dandroid-arch=armeabi-v7a
+          mv export/android/bin/app-release.apk Build32.apk
 
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
-      with:
-        name: KizzyRPC-APK
-        path: export/android/release/bin/app-release.apk
+      - name: Build 64-bit APK
+        run: |
+          haxelib run lime build android -release -Dandroid-arch=arm64-v8a
+          mv export/android/bin/app-release.apk Build64.apk
+
+      - name: Zip APKs
+        run: |
+          zip comp-apks.zip Build32.apk Build64.apk
+
+      - name: Upload APKs as Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: comp-apks
+          path: comp-apks.zip
