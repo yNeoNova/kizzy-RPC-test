@@ -1,80 +1,63 @@
-name: Android Build
+name: Build Android APKs
 
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
-    env:
-      ANDROID_HOME: ${{ github.workspace }}/android-sdk
-      ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
-      JAVA_HOME: /usr/lib/jvm/java-11-openjdk-amd64
-
     steps:
-      - name: Checkout Repository
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Java
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'temurin'
-          java-version: '11'
-
-      - name: Install Android SDK and Build Tools
-        run: |
-          mkdir -p $ANDROID_HOME/cmdline-tools
-          cd $ANDROID_HOME/cmdline-tools
-          curl -o sdk.zip https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
-          unzip sdk.zip -d tools
-          rm sdk.zip
-          yes | tools/bin/sdkmanager --sdk_root=${ANDROID_HOME} --licenses
-          tools/bin/sdkmanager --sdk_root=${ANDROID_HOME} \
-            "platform-tools" "platforms;android-33" "build-tools;33.0.2" "ndk;21.4.7075529"
-
-      - name: Set Environment Variables
-        run: |
-          echo "ANDROID_SDK_ROOT=$ANDROID_HOME" >> $GITHUB_ENV
-          echo "ANDROID_NDK_ROOT=$ANDROID_HOME/ndk/21.4.7075529" >> $GITHUB_ENV
-          echo "$ANDROID_HOME/platform-tools" >> $GITHUB_PATH
-          echo "$ANDROID_HOME/emulator" >> $GITHUB_PATH
-          echo "$ANDROID_HOME/cmdline-tools/tools/bin" >> $GITHUB_PATH
-          echo "$ANDROID_HOME/build-tools/33.0.2" >> $GITHUB_PATH
-
-      - name: Install Haxe 4.3.6
+      - name: Set up Haxe
         uses: krdlab/setup-haxe@v1
         with:
           haxe-version: 4.3.6
 
-      - name: Install HMM and Libraries
+      - name: Install hmm globally
         run: |
           haxelib --global install hmm
           haxelib --global run hmm setup
+
+      - name: Run hmm install
+        run: |
           hmm install
 
-      - name: Setup Lime and Android
+      - name: List installed deps
         run: |
-          haxelib run lime setup -y
+          ls .haxelib/
+
+      - name: Lime setup Android (installs SDK/NDK/Java)
+        run: |
           haxelib run lime setup android -y
 
-      - name: Build 32-bit APK
+      - name: Build 32-bit APK (armeabi-v7a)
         run: |
           haxelib run lime build android -release -Dandroid-arch=armeabi-v7a
-          mv export/android/bin/app-release.apk Build32.apk
 
-      - name: Build 64-bit APK
+      - name: Move 32-bit APK
+        run: |
+          mkdir -p out_apks
+          mv export/android/bin/app-release.apk out_apks/Build32.apk
+
+      - name: Build 64-bit APK (arm64-v8a)
         run: |
           haxelib run lime build android -release -Dandroid-arch=arm64-v8a
-          mv export/android/bin/app-release.apk Build64.apk
 
-      - name: Upload APKs
+      - name: Move 64-bit APK
+        run: |
+          mv export/android/bin/app-release.apk out_apks/Build64.apk
+
+      - name: Zip APKs
+        run: |
+          zip -r comp-apks.zip out_apks
+
+      - name: Upload APK ZIP as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: comp-apks
-          path: |
-            Build32.apk
-            Build64.apk
+          name: comp-apks.zip
+          path: comp-apks.zip
