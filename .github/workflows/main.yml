@@ -18,27 +18,31 @@ jobs:
       with:
         haxe-version: 4.3.6
 
-    - name: Install hmm and required haxelibs
+    - name: Install Haxelibs with hmm
       run: |
         haxelib --global install hmm
         haxelib --global run hmm setup
-        hmm install
-
+        
     - name: Install Lime and run Android setup
       run: |
         haxelib install lime
         haxelib run lime setup android --quiet
 
-    - name: Build release APK
+    - name: Export Android paths to env
+      run: |
+        echo "ANDROID_SDK=$HOME/lib/android-sdk" >> $GITHUB_ENV
+        echo "ANDROID_NDK_ROOT=$HOME/lib/android-ndk" >> $GITHUB_ENV
+
+    - name: Build APK (Release)
       run: |
         haxelib run lime build android -release
 
-    - name: List APK Created
+    - name: List APK
       run: |
-         ls *.apk
+        ls *.apk
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: KizzyRPC-APK
-        path: export/android/release/bin/*.apk
+        path: export/android/release/bin/app-release.apk
