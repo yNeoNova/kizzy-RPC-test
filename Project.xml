@@ -20,7 +20,7 @@
     <haxelib name="flixel-addons" />
     <haxelib name="flixel-ui" />
     <lime version="8.2.2" />
-    <haxelib name="openfl" />
+    <haxelib name="openfl" version="9.3.2" />
     <haxelib name="hxcpp" />
     <haxelib name="extension-kizzyrpc" if="android" />
 
