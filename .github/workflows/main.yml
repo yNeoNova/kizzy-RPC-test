@@ -1,0 +1,44 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build-android:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repo
+      uses: actions/checkout@v4
+
+    - name: Setup Haxe 4.3.6
+      uses: krdlab/setup-haxe@v1
+      with:
+        haxe-version: 4.3.6
+
+    - name: Install hmm and required haxelibs
+      run: |
+        haxelib --global install hmm
+        haxelib --global run hmm setup
+        hmm install
+
+    - name: Install Lime and run Android setup
+      run: |
+        haxelib install lime
+        haxelib run lime setup android --quiet
+
+    - name: Build release APK
+      run: |
+        haxelib run lime build android -release
+
+    - name: List APK Created
+      run: |
+         ls *.apk
+
+    - name: Upload APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: KizzyRPC-APK
+        path: export/android/release/bin/*.apk
