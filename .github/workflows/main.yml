@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      ANDROID_SDK: ${{ runner.home }}/Android/Sdk
-      ANDROID_NDK_ROOT: ${{ runner.home }}/Android/Sdk/ndk-bundle
+      ANDROID_SDK: /usr/lib/android-sdk
+      ANDROID_NDK_ROOT: /usr/lib/android-sdk/ndk-bundle
 
     steps:
       - name: Checkout repository
@@ -37,12 +37,12 @@ jobs:
           haxelib run lime setup -y
           haxelib run lime setup android -y
 
-      - name: Build 32-bit APK
+      - name: Build 32-bit APK (armeabi-v7a)
         run: |
           haxelib run lime build android -release -Dandroid-arch=armeabi-v7a
           mv export/android/bin/app-release.apk Build32.apk
 
-      - name: Build 64-bit APK
+      - name: Build 64-bit APK (arm64-v8a)
         run: |
           haxelib run lime build android -release -Dandroid-arch=arm64-v8a
           mv export/android/bin/app-release.apk Build64.apk
