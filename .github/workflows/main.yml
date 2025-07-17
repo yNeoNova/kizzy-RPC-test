@@ -10,6 +10,10 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
+    env:
+      ANDROID_SDK: ${{ runner.home }}/Android/Sdk
+      ANDROID_NDK_ROOT: ${{ runner.home }}/Android/Sdk/ndk-bundle
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -26,10 +30,9 @@ jobs:
           hmm install
 
       - name: List Installed Deps
-        run: |
-          ls .haxelib/
+        run: ls .haxelib/
 
-      - name: Setup Lime and Android
+      - name: Setup Lime and Android SDK/NDK
         run: |
           haxelib run lime setup -y
           haxelib run lime setup android -y
@@ -45,10 +48,9 @@ jobs:
           mv export/android/bin/app-release.apk Build64.apk
 
       - name: Zip APKs
-        run: |
-          zip comp-apks.zip Build32.apk Build64.apk
+        run: zip comp-apks.zip Build32.apk Build64.apk
 
-      - name: Upload APKs as Artifact
+      - name: Upload APKs Artifact
         uses: actions/upload-artifact@v4
         with:
           name: comp-apks
