@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+    <meta title="test haha" package="com.yes.leo" version="1.0.0" company="Leo" />
+
+    <!-- Target setup -->
+    <app main="Main" path="export" file="appFileLMAO" />
+    <source path="source" />
+
+    <!-- Assets -->
+    <assets path="assets" include="images" />
+
+    <!-- Icon -->
+    <icon path="icons/iconOG.png" />
+
+    <!-- Window config -->
+    <window width="1280" height="720" fps="60" background="#000000" />
+
+    <!-- Core libraries -->
+    <haxelib name="flixel" />
+    <haxelib name="flixel-addons" />
+    <haxelib name="flixel-ui" />
+    <haxelib name="openfl" />
+    <haxelib name="lime" />
+    <haxelib name="hxcpp" />
+    <haxelib name="extension-kizzyrpc" if="android" />
+
+    <!-- Android-specific -->
+    <platform name="android">
+        <architecture name="armv7" />
+        <architecture name="arm64" />
+        <config:android permission="android.permission.ACCESS_NETWORK_STATE" />
+        <config:android permission="android.permission.INTERNET" />
+        <permission name="FOREGROUND_SERVICE" />
+    </platform>
+</project>
